@@ -17,6 +17,7 @@
 
 
 require('./settings')
+const allmenu = require('./database/allmenu.js')
 const {
    default: makeWASocket,
    BufferJSON,
@@ -1121,6 +1122,107 @@ ${isSurender ? '' : ``}`.trim()
             reply(sewabotnya)
          }
          break
+
+case 'allmenu': {
+  const os = require('os')
+  const moment = require('moment-timezone')
+  const waktu = moment.tz('Asia/Makassar')
+  const user = m.pushName || 'Kak'
+  const userId = m.sender.split('@')[0]
+  const conn = global.conn || {}
+
+  const isPremium = db.data.users[m.sender]?.premium ? '✅' : '❌'
+  const isRegistered = db.data.users[m.sender]?.registered ? '✅' : '❌'
+  const isOwner = m.sender.includes(global.owner[0])
+  const limit = db.data.users[m.sender]?.limit || 'Infinity'
+  const exp = db.data.users[m.sender]?.exp || 0
+  const level = db.data.users[m.sender]?.level || 0
+  const totalFitur = 981 // atau total fitur dinamis
+
+  const speed = performance.now()
+  const latensi = (performance.now() - speed).toFixed(4)
+  const memUsed = (process.memoryUsage().rss / 1024 / 1024).toFixed(2)
+  const hostname = os.hostname()
+  let platform = os.platform()
+  if (platform === 'linux') platform = 'Linux / UserLand'
+  if (platform === 'android') platform = 'Android / Termux'
+
+  const tanggal = waktu.format('dddd, DD MMMM YYYY')
+  const hijriah = waktu.locale('id').format('iYYYY/iM/iD')
+  const jam = waktu.format('HH:mm:ss')
+
+  const chats = Object.values(conn.chats || {})
+  const privateChat = chats.filter(c => c.id.endsWith('@s.whatsapp.net')).length
+  const groupChat = chats.filter(c => c.id.endsWith('@g.us')).length
+  const totalChat = chats.length
+
+  const totalUser = Object.keys(db.data.users).length
+  const registered = Object.values(db.data.users).filter(u => u.registered).length
+  const banned = Object.values(db.data.users).filter(u => u.banned).length
+  const blocked = Object.values(conn.blocklist || {}).length
+
+  const botNumber = conn.user?.id?.split('@')[0] || '-'
+  const ownerNumber = global.owner[0].split('@')[0]
+
+  const runtime = (uptime) => {
+    let d = Math.floor(uptime / (3600 * 24))
+    let h = Math.floor(uptime % (3600 * 24) / 3600)
+    let m = Math.floor(uptime % 3600 / 60)
+    let s = Math.floor(uptime % 60)
+    return `${d}d ${h}h ${m}m ${s}s`
+  }
+
+  const infoAwal = `
+╭─❒ *BOT INFO*
+│ Creator     : @vsara
+│ Sponsored   : @WhatsApp
+│ Prefix      : "."
+│ Total Fitur : ${totalFitur}
+│ Speed       : ${latensi}s
+│ Memory Used : ${memUsed}MB
+│ Hostname    : ${hostname}
+│ Platform    : ${platform}
+│ Private Chat: ${privateChat}
+│ Group Chat  : ${groupChat}
+│ Total Chat  : ${totalChat}
+│ User in DB  : ${totalUser} Users
+│ User Regist : ${registered} Users
+│ User Banned : ${banned} Users
+│ User Blocked: ${blocked} Users
+│ Runtime     : ${runtime(process.uptime())}
+╰───────────────
+
+╭─❒ *DATE INFO*
+│ Masehi : ${tanggal}
+│ Hijriah: ${hijriah}
+│ Waktu  : ${jam} WITA
+╰───────────────
+
+╭─❒ *USER INFO*
+│ Nama     : ${user}
+│ Me       : wa.me/${botNumber}
+│ Nomor    : wa.me/${userId}
+│ Owner    : wa.me/${ownerNumber}
+│ Limit    : ${limit}
+│ XP       : ${exp}
+│ Level    : ${level}
+│ Premium  : ${isPremium}
+│ Terdaftar: ${isRegistered}
+│ Owner?   : ${isOwner ? 'True' : 'False'}
+╰───────────────`.trim()
+
+  const allmenu = require('./database/allmenu.js')
+  const menuList = Object.entries(allmenu).map(([judul, isi]) => {
+    return `╭─❒ *${judul}*\n${isi.map(cmd => `│ • ${cmd}`).join('\n')}\n╰───────────────`
+  }).join('\n\n')
+
+  alpha.sendMessage(m.chat, {
+    image: { url: './image/lol.jpg' },
+    caption: infoAwal + '\n\n' + menuList,
+    quoted: m
+  })
+  break
+}
          case 'absen':
             if (m.isGroup) {
                if (!(isGroupAdmins || isCreator)) return reply(lang.adminOnly())
