@@ -34,6 +34,7 @@ const NodeCache = require("node-cache")
 const readline = require("readline")
 const { parsePhoneNumber } = require("libphonenumber-js")
 const pairingCode = true
+const pairingNumber = '6283197652103'
 const doReplies = true
 const useMobile = false
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
